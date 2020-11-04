@@ -17,8 +17,8 @@ func DBinit() *gorm.DB {
 		panic("Failed to connect database!" + err.Error())
 	}
 
-	// Membuat tabel account_model dan transaction_model pada DB MySQL sesuai skema yg telah dibuat
-	db.AutoMigrate(new(model.AccountModel), new(model.TransactionModel))
+	// Membuat tabel account_models dan transaction_models pada DB MySQL sesuai skema yg telah dibuat
+	db.AutoMigrate(new(model.Account), new(model.Transaction))
 	DB = db
 
 	return db
