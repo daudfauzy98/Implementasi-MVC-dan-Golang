@@ -22,7 +22,7 @@ func main() {
 
 	router.POST("/api/v1/transfer", middleware.Auth, transactionController.Transfer)
 	router.POST("/api/v1/withdraw", middleware.Auth, transactionController.Withdraw)
-	router.GET("/api/v1/deposit", middleware.Auth, transactionController.Deposit)
+	router.POST("/api/v1/deposit", middleware.Auth, transactionController.Deposit)
 
 	router.Run(":8000")
 }
