@@ -8,8 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type TransactionModel struct {
-	DB                     *gorm.DB
+type Transaction struct {
 	ID                     int    `gorm: "primary_key" json:"-"`
 	TransactionType        int    `json:"transaction_type, omitempty"`
 	TransactionDescription string `json:"transaction_description"`
@@ -19,13 +18,15 @@ type TransactionModel struct {
 	Timestamp              int64  `json:"timestamp, omitempty"`
 }
 
-func (transaction TransactionModel) Transfer() (bool, error) {
-	err := transaction.DB.Transaction(func(tx *gorm.DB) error {
-		var sender, recipient AccountModel
+type TransactionModel struct {
+	DB *gorm.DB
+}
 
-		result := tx.Model(&AccountModel{}).Where(&AccountModel{
-			AccountNumber: transaction.Sender,
-		}).First(&sender)
+func (model TransactionModel) Transfer(transaction Transaction) (bool, error) {
+	err := model.DB.Transaction(func(tx *gorm.DB) error {
+		var sender, recipient Account
+
+		result := tx.Model(&Account{}).Where(&Account{AccountNumber: transaction.Sender}).First(&sender)
 		if result.Error != nil {
 			return result.Error
 		}
@@ -41,10 +42,9 @@ func (transaction TransactionModel) Transfer() (bool, error) {
 			return result.Error
 		}
 
-		result = tx.Model(&AccountModel{}).Where(AccountModel{
+		result = tx.Model(&Account{}).Where(Account{
 			AccountNumber: transaction.Recipient,
 		}).First(&recipient).Update("saldo", recipient.Saldo+transaction.Amount)
-
 		if result.Error != nil {
 			return result.Error
 		}
@@ -58,7 +58,6 @@ func (transaction TransactionModel) Transfer() (bool, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return false, err
 	}
@@ -66,10 +65,10 @@ func (transaction TransactionModel) Transfer() (bool, error) {
 	return true, nil
 }
 
-func (transaction TransactionModel) Withdraw() (bool, error) {
-	err := transaction.DB.Transaction(func(tx *gorm.DB) error {
-		var sender AccountModel
-		result := tx.Model(&AccountModel{}).Where(&AccountModel{
+func (model TransactionModel) Withdraw(transaction Transaction) (bool, error) {
+	err := model.DB.Transaction(func(tx *gorm.DB) error {
+		var sender Account
+		result := tx.Model(&Account{}).Where(&Account{
 			AccountNumber: transaction.Sender,
 		}).First(&sender)
 		if result.Error != nil {
@@ -96,7 +95,6 @@ func (transaction TransactionModel) Withdraw() (bool, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return false, err
 	}
@@ -104,10 +102,10 @@ func (transaction TransactionModel) Withdraw() (bool, error) {
 	return true, nil
 }
 
-func (transaction TransactionModel) Deposit() (bool, error) {
-	err := transaction.DB.Transaction(func(tx *gorm.DB) error {
-		var sender AccountModel
-		result := tx.Model(&AccountModel{}).Where(&AccountModel{
+func (model TransactionModel) Deposit(transaction Transaction) (bool, error) {
+	err := model.DB.Transaction(func(tx *gorm.DB) error {
+		var sender Account
+		result := tx.Model(&Account{}).Where(&Account{
 			AccountNumber: transaction.Sender,
 		}).First(&sender).Update("saldo", sender.Saldo+transaction.Amount)
 		if result.Error != nil {
@@ -123,7 +121,6 @@ func (transaction TransactionModel) Deposit() (bool, error) {
 
 		return nil
 	})
-
 	if err != nil {
 		return false, err
 	}

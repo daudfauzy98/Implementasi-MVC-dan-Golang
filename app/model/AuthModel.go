@@ -1,33 +1,36 @@
 package model
 
 import (
-	"errors"
+	"github.com/pkg/errors"
 
 	"github.com/daudfauzy98/Implementasi-MVC-dan-Golang/app/utils"
 	"github.com/dgrijalva/jwt-go"
 	"gorm.io/gorm"
 )
 
-type AuthModel struct {
-	DB       *gorm.DB
+type Auth struct {
 	Name     string `jason: "name"`
 	Password string `jason: "password"`
 }
 
-func (auth AuthModel) Login() (bool, error, string) {
-	var account AccountModel
+type AuthModel struct {
+	DB *gorm.DB
+}
 
-	result := auth.DB.Where(&AccountModel{Name: auth.Name}).First(&account)
+func (model AuthModel) Login(auth Auth) (bool, error, string) {
+	var account Account
+
+	result := model.DB.Where(&Account{Name: auth.Name}).First(&account)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return false, errors.New("Account not found!"), ""
+			return false, errors.Errorf("Account not found!"), ""
 		}
 		return false, result.Error, ""
 	}
 
 	err := utils.HashComparator([]byte(account.Password), []byte(auth.Password))
 	if err != nil {
-		return false, errors.New("Incorrect password"), ""
+		return false, errors.Errorf("Incorrect password"), ""
 	}
 
 	sign := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

@@ -1,4 +1,4 @@
-package middlerware
+package middleware
 
 import (
 	"fmt"
@@ -13,12 +13,12 @@ func Auth(c *gin.Context) {
 	tokenString := c.Request.Header.Get("Authorization")
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if jwt.GetSigningMethod("HS256") != token.Method {
-			return nil, fmt.Errorf("Unexpected token!")
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte("secret"), nil
 	})
 
-	if token == nil || err != nil {
+	if err != nil {
 		result := gin.H{
 			"Message": "Invalid token!",
 			"Error":   err.Error(),
@@ -34,14 +34,16 @@ func Auth(c *gin.Context) {
 	fmt.Println(claims)
 
 	var idAccount int
-	err = mapstructure.Decode(claims["account_number"], idAccount)
+	err = mapstructure.Decode(claims["account_number"], &idAccount)
 	if err != nil {
 		result := gin.H{
 			"Message": err.Error(),
 		}
+
 		c.JSON(http.StatusUnauthorized, result)
 		c.Abort()
 	}
 
+	fmt.Println(idAccount)
 	c.Set("account_number", idAccount)
 }

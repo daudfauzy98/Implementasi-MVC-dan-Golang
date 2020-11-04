@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/daudfauzy98/Implementasi-MVC-dan-Golang/app/model"
@@ -15,9 +16,10 @@ type AccountController struct {
 }
 
 func (ctrl AccountController) CreateAccount(ctx *gin.Context) {
-	account := model.AccountModel{
+	accountModel := model.AccountModel{
 		DB: ctrl.DB,
 	}
+	var account model.Account
 
 	err := ctx.Bind(&account)
 	if err != nil {
@@ -33,7 +35,7 @@ func (ctrl AccountController) CreateAccount(ctx *gin.Context) {
 
 	account.Password = hashPassword
 
-	flag, err := account.InsertNewAccount()
+	flag, err := accountModel.InsertNewAccount(account)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusInternalServerError)
 		return
@@ -77,14 +79,15 @@ func (ctrl AccountController) Login(ctx *gin.Context) {
 	authModel := model.AuthModel{
 		DB: ctrl.DB,
 	}
+	var auth model.Auth
 
-	err := ctx.Bind(&authModel)
+	err := ctx.Bind(&auth)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	flag, err, token := authModel.Login()
+	flag, err, token := authModel.Login(auth)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusInternalServerError)
 		return
@@ -98,4 +101,6 @@ func (ctrl AccountController) Login(ctx *gin.Context) {
 	utils.WrapAPIData(ctx, map[string]interface{}{
 		"token": token,
 	}, http.StatusOK, "Success!")
+
+	log.Println("Login")
 }

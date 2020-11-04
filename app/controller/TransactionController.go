@@ -18,21 +18,22 @@ func (ctrl TransactionController) Transfer(ctx *gin.Context) {
 	transactionModel := model.TransactionModel{
 		DB: ctrl.DB,
 	}
+	var transaction model.Transaction
 
-	err := ctx.Bind(&transactionModel)
+	err := ctx.Bind(&transaction)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	flag, err := transactionModel.Transfer()
+	flag, err := transactionModel.Transfer(transaction)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if !flag {
-		utils.WrapAPIError(ctx, "Unknows failed to transfer", http.StatusInternalServerError)
+		utils.WrapAPIError(ctx, "Unknown error failed to transfer", http.StatusInternalServerError)
 		return
 	}
 
@@ -44,21 +45,22 @@ func (ctrl TransactionController) Withdraw(ctx *gin.Context) {
 	transactionModel := model.TransactionModel{
 		DB: ctrl.DB,
 	}
+	var transaction model.Transaction
 
-	err := ctx.Bind(&transactionModel)
+	err := ctx.Bind(&transaction)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	flag, err := transactionModel.Withdraw()
+	flag, err := transactionModel.Withdraw(transaction)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if !flag {
-		utils.WrapAPIError(ctx, "Unknows failed to transfer", http.StatusInternalServerError)
+		utils.WrapAPIError(ctx, "Unknown error failed to withdraw", http.StatusInternalServerError)
 		return
 	}
 
@@ -70,21 +72,22 @@ func (ctrl TransactionController) Deposit(ctx *gin.Context) {
 	transactionModel := model.TransactionModel{
 		DB: ctrl.DB,
 	}
+	var transaction model.Transaction
 
-	err := ctx.Bind(&transactionModel)
+	err := ctx.Bind(&transaction)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	flag, err := transactionModel.Deposit()
+	flag, err := transactionModel.Deposit(transaction)
 	if err != nil {
 		utils.WrapAPIError(ctx, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if !flag {
-		utils.WrapAPIError(ctx, "Unknows failed to transfer", http.StatusInternalServerError)
+		utils.WrapAPIError(ctx, "Unknown error failed to Deposit", http.StatusInternalServerError)
 		return
 	}
 

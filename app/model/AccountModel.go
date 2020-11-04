@@ -8,22 +8,26 @@ import (
 	"gorm.io/gorm"
 )
 
-type AccountModel struct {
-	DB            *gorm.DB
+// Account untuk model tabel pada database
+type Account struct {
 	ID            int    `gorm:"primary_key" json:"-"`
-	IdAccount     string `gorm:"id_account, omitempty"`
+	IDAccount     string `gorm:"id_account, omitempty"`
 	Name          string `gorm:"name"`
 	Password      string `gorm:"password, omitempty"`
 	AccountNumber int    `gorm:"account_number, omitempty"`
 	Saldo         int    `gorm:"saldo"`
 }
 
-func (account AccountModel) InsertNewAccount() (bool, error) {
+type AccountModel struct {
+	DB *gorm.DB
+}
+
+func (model AccountModel) InsertNewAccount(account Account) (bool, error) {
 	account.AccountNumber = utils.RangeInt(1000, 10000)
 	account.Saldo = 0
-	account.IdAccount = fmt.Sprintf("id:-%d", utils.RangeInt(10, 5000))
+	account.IDAccount = fmt.Sprintf("id:-%d", utils.RangeInt(10, 5000))
 
-	result := account.DB.Create(&account)
+	result := model.DB.Create(&account)
 	if result.Error != nil {
 		return false, result.Error
 	}
@@ -31,26 +35,27 @@ func (account AccountModel) InsertNewAccount() (bool, error) {
 	return true, nil
 }
 
-func (account AccountModel) GetAccountDetail(idAccount int) (bool, error, []TransactionModel, AccountModel) {
-	var transaction []TransactionModel
+func (model AccountModel) GetAccountDetail(idAccount int) (bool, error, []Transaction, Account) {
+	var transaction []Transaction
+	var account Account
 
-	result := account.DB.Where("sender = ? OR recipient = ? ", idAccount, idAccount).Find(&transaction)
+	result := model.DB.Model(&Transaction{}).Where("sender = ? OR recipient = ? ", idAccount, idAccount).Find(&transaction)
+	fmt.Println(idAccount)
+	fmt.Println(transaction)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return false, errors.Errorf("Account not found!"), []TransactionModel{}, AccountModel{}
+			return false, errors.Errorf("Account not found!"), []Transaction{}, Account{}
 		}
-		return false, result.Error, []TransactionModel{}, AccountModel{}
+		return false, result.Error, []Transaction{}, Account{}
 	}
 
-	result = account.DB.Where(&AccountModel{
-		AccountNumber: idAccount,
-	}).Find(&account)
-
+	result = model.DB.Where(&Account{AccountNumber: idAccount}).Find(&account)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
-			return false, errors.Errorf("Account not found!"), []TransactionModel{}, AccountModel{}
+			return false, errors.Errorf("Account not found!"), []Transaction{}, Account{}
 		}
-		return false, result.Error, []TransactionModel{}, AccountModel{}
+		return false, result.Error, []Transaction{}, Account{}
 	}
+
 	return true, nil, transaction, account
 }
